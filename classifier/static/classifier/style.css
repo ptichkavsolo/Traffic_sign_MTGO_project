@@ -1,0 +1,106 @@
+body {
+    background-color: #121212;
+    font-family: 'sans-serif', Tahoma, Geneva, Verdana, sans-serif;
+    color: #ffffff;
+    margin: 0;
+}
+
+.container {
+    width: 550px;
+    margin: 50px auto;
+    background: #1e1e1e;
+    padding: 35px;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+    text-align: center;
+}
+
+h1 {
+    color: #bb86fc;
+    margin-bottom: 30px;
+}
+
+#drop-area {
+    border: 2px dashed #bb86fc;
+    padding: 50px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #2c2c2c;
+}
+
+#drop-area.highlight {
+    background: #3c3c3c;
+    border-color: #6200ee;
+}
+
+#drop-area p {
+    margin: 0;
+    font-weight: 500;
+    color: #e0e0e0;
+}
+
+#drop-area input[type="file"] {
+    display: none;
+}
+
+#loader {
+    margin: 15px 0;
+}
+
+.hidden { display: none; }
+
+#preview {
+    margin-top: 15px;
+}
+
+#preview img {
+    border: 2px solid #bb86fc;
+    border-radius: 8px;
+    width: 400px;
+    height: 300px;
+    display: block;
+    margin: 10px auto;
+}
+
+#crop-message {
+    color: #ffb74d;
+    font-weight: 500;
+    margin-top: 10px;
+}
+
+button {
+    padding: 12px 25px;
+    background: #bb86fc;
+    color: #121212;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    margin-top: 15px;
+    transition: background 0.3s ease;
+    margin-bottom: 10px;
+}
+
+button:hover {
+    background: #9a67ea;
+}
+
+.result {
+    margin-top: 20px; /* отступ сверху всего блока */
+    padding: 12px;
+    background: #2c2c2c;
+    border-left: 5px solid #bb86fc;
+    border-radius: 6px;
+    font-weight: 600;
+    color: #ffffff;
+    line-height: 1.5; /* увеличивает расстояние между классом и координатами */
+}
+.result-item {
+    margin-bottom: 10px; /* отступ между отдельными результатами */
+}
+.result-item span.class-name {
+    margin-right: 15px; /* расстояние между классом и координатами */
+}
+

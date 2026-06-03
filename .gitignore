@@ -1,0 +1,91 @@
+# ============================================
+# Python и Django
+# ============================================
+
+# Виртуальные окружения
+venv/
+env/
+.venv/
+
+# Файлы Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Django
+*.log
+*.pot
+*.pyc
+db.sqlite3
+db.sqlite3-journal
+
+# Медиа файлы 
+media/
+
+
+# Результаты обработки изображений
+result_*
+
+# Временные/тестовые изображения
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.webp
+# ============================================
+# Системные файлы
+# ============================================
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# ============================================
+# IDE и редакторы
+# ============================================
+
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+
+# ============================================
+# Конфиденциальные данные
+# ============================================
+
+# Ключи и пароли
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+secrets.py
+
+# ============================================
+# Дополнительно для вашего проекта
+# ============================================
+
+
+# Jupyter Notebook
+.ipynb_checkpoints/

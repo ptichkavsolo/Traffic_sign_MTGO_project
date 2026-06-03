@@ -1,0 +1,172 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Классификация дорожных знаков</title>
+    <link rel="stylesheet" href="{% static 'classifier/style.css' %}">
+</head>
+<body>
+    <div class="container">
+        <h1>Распознавание дорожных знаков</h1>
+        <div id="drop-area">
+            <p>Перетащите картинку сюда или нажмите для выбора файла</p>
+            <input type="file" id="fileInput" accept="image/*">
+        </div>
+        <!-- Анимация загрузки -->
+        <div id="loader" class="hidden">
+            <img src="{% static 'classifier/loading.gif' %}" alt="Загрузка..." width="200">
+        </div>
+        <!-- Превью картинки с canvas -->
+        <div id="preview"></div>
+        <!-- Кнопка классификации -->
+        <input type="hidden" id="imageName">
+        <button id="predictBtn" class="hidden">Классифицировать</button>
+        <!-- Результат модели -->
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const dropArea = document.getElementById('drop-area');
+        const fileInput = document.getElementById('fileInput');
+        const loader = document.getElementById('loader');
+        const preview = document.getElementById('preview');
+        const imageName = document.getElementById('imageName');
+        const predictBtn = document.getElementById('predictBtn');
+        const resultDiv = document.getElementById('result');
+        let canvas, ctx, imgGlobal;
+
+        ;['dragenter','dragover','dragleave','drop'].forEach(evt => {
+            dropArea.addEventListener(evt, e => e.preventDefault());
+        });
+        dropArea.addEventListener('dragover', () => dropArea.classList.add('highlight'));
+        dropArea.addEventListener('dragleave', () => dropArea.classList.remove('highlight'));
+        dropArea.addEventListener('drop', e => {dropArea.classList.remove('highlight'); handleFiles(e.dataTransfer.files);
+        });
+        dropArea.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+
+        function handleFiles(files) {
+            if (!files.length) return;
+            const file = files[0];
+
+            loader.classList.remove('hidden');
+            predictBtn.classList.add('hidden');
+            resultDiv.innerHTML = '';
+            preview.innerHTML = '';
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    imgGlobal = img;
+
+                    // Создаем canvas
+                    canvas = document.createElement('canvas');
+                    const maxSize = 400;
+                    let scale = Math.min(maxSize/img.width, maxSize/img.height, 1);
+                    canvas.width = img.width * scale;
+                    canvas.height = img.height * scale;
+                    ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                    canvas.style.border = '2px solid #bb86fc';
+                    canvas.style.borderRadius = '8px';
+                    canvas.style.display = 'block';
+                    canvas.style.margin = '10px auto';
+                    preview.appendChild(canvas);
+
+                    loader.classList.add('hidden');
+                    predictBtn.classList.remove('hidden');
+                }
+                img.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+
+            // Загрузка на сервер
+            const formData = new FormData();
+            formData.append('image', file);
+            fetch('/upload/', {
+                method: 'POST',
+                body: formData,
+                headers: {'X-CSRFToken': '{{ csrf_token }}'}
+            })
+            .then(res => res.json())
+            .then(data => { imageName.value = data.image_name; })
+            .catch(err => {
+                loader.classList.add('hidden');
+                alert('Ошибка загрузки файла');
+                console.error(err);
+            });
+        }
+
+        // Кнопка классификации 
+        predictBtn.addEventListener('click', () => {
+            if (!imageName.value) return;
+
+            const formData = new FormData();
+            formData.append('image_name', imageName.value);
+
+            fetch('/predict/', {
+                method: 'POST',
+                body: formData,
+                headers: {'X-CSRFToken': '{{ csrf_token }}'}
+            })
+            .then(res => res.json())
+            .then(data => {
+                // Очищаем предыдущие результаты
+                resultDiv.innerHTML = '';
+                
+                // Если знаки не найдены
+                if (data.found === false) {
+                    resultDiv.innerHTML = `<div class="result">🚫 ${data.message}</div>`;
+                    
+                    // Очищаем canvas от предыдущих прямоугольников
+                    if (canvas && ctx && imgGlobal) {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(imgGlobal, 0, 0, canvas.width, canvas.height);
+                    }
+                    return;
+                }
+                
+                // Если произошла ошибка
+                if (data.error) {
+                    resultDiv.innerHTML = `<div class="result">❌ ${data.error}</div>`;
+                    return;
+                }
+                
+                // Если знаки найдены
+                if (data.found === true && data.results && data.results.length > 0) {
+                    data.results.forEach(r => {
+                        const div = document.createElement('div');
+                        div.className = 'result-item';
+                        div.innerHTML = `<span class="class-name">${r.class_name}</span> [${r.bbox}]`;
+                        resultDiv.appendChild(div);
+                    });
+
+                    if (canvas && ctx) {
+                        ctx.clearRect(0,0,canvas.width,canvas.height);
+                        ctx.drawImage(imgGlobal, 0, 0, canvas.width, canvas.height);
+
+                        data.results.forEach(r => {
+                            let scaleX = canvas.width / imgGlobal.width;
+                            let scaleY = canvas.height / imgGlobal.height;
+                            let [x, y, w, h] = r.bbox;
+                            ctx.strokeStyle = 'lime';
+                            ctx.lineWidth = 2;
+                            ctx.strokeRect(x*scaleX, y*scaleY, w*scaleX, h*scaleY);
+                        });
+                    }
+                } else {
+                    resultDiv.innerHTML = `<div class="result">⚠️ Знаки не найдены</div>`;
+                }
+            })
+            .catch(err => {
+                resultDiv.innerHTML = `<div class="result">❌ Ошибка классификации</div>`;
+                alert('Ошибка классификации');
+                console.error(err);
+            });
+        });
+    </script>
+</body>
+</html>
